@@ -1,6 +1,12 @@
-http://deviceip:80/discover.json
+#Documentation for HTTP interface:
 
-http://deviceip:80/lineup_status.json
+[http://www.silicondust.com/hdhomerun/hdhomerun_http_development.pdf]
+Last update: 20140407
+
+
+`http://deviceip:80/discover.json`
+
+`http://deviceip:80/lineup_status.json`
 
 {"ScanInProgress":0,"ScanPossible":1,"Source":"Antenna","SourceList":["Antenna","Cable"]}
 
