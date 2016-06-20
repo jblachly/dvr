@@ -7,7 +7,7 @@ package main
 
 // Standard library
 import (
-	"fmt"
+	//"fmt"
 	//	"encoding/json"
 	"log"
 	"net/http"
@@ -18,33 +18,85 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func Record() bool {
+// Schedule a recording
+// can be called by the http handler for POST to /recordings/
+// or by Record() when issuing the next instance of a scheduled series
+func ScheduleRecording(r *Recording) bool {
+	// schedule using time.After
+	return true
+}
+
+// maybe rename this RecordCallback?
+// should be triggered by the scheduler (more correctly, the wait timer)
+func Record(r *Recording) bool {
+
+	// 1. for recording object/doc, check if "recurrence"
+	// 2. If yes, copy to new object; if no, skip to 4
+	if r.Recurring {
+		s := new(Recording) // allocate memory
+		*s = *r             // deep copy (https://play.golang.org/p/R8uStEApCb)
+
+		// 3. new object:
+		// a) decrement remaining counter
+		// b) post to database
+		// c) schedule recording with cron or at or whatever time.After
+		s.RecurrenceData.Remaining--
+		// post to database
+		_ = ScheduleRecording(s)
+	}
+
+	// 4. old object: unset scheduled flag; set in progress flag
+	// (TO DO: how to enforce in progress flag being turned off later?)
+	r.InProgress = true
+	r.Scheduled = false
+
+	// 5. update old object in database
+
+	// 6. Record()!
 
 	uri := buildURI("192.168.1.111", 5004, "10.1")
 	uuid := "286e792c-e9ab-4983-a17f-36e75f129572"
-	duration := uint(60)
 
 	if true {
-		go streamToDisk(uri, uuid, duration, "./uuid.mp4")
+		go streamToDisk(uri, uuid, r.Duration, "./"+uuid+".mp4")
 	} else {
-		go transcode(uri, uuid, duration, "./uuid.mp4")
+		go transcode(uri, uuid, r.Duration, "./"+uuid+".mp4")
 	}
 
 	return true
 }
 
-func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, "Welcome!\n")
-}
-
-func Hello(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	fmt.Fprintf(w, "hello, %s!\n", ps.ByName("name"))
-}
-
 func main() {
+
+	log.Println("Starting DVR")
+
+	log.Println("Connecting to database: http://localhost:5984/dvr")
+	// connect to couchdb
+
+	log.Println("Reading configuration")
+	// read configuration from couchdb
+
+	log.Println("Database consistency check")
+	// ensure nothing is "in progress" on startup (?)
+	// that being said, if doing a software transcode it coudl still be working unless it got a HUP when dvr closed?
+	// streaming to disk would ahve stopped however
+	// ALSO: if ever > 1 copy of dvr running at same time / on different hosts this logic breaks
+
+	log.Println("Scheduling recordings...")
+	// read from couchdb
+	// 1. look for any type:recording documents with "scheduled": true
+	// 2. look for any type:scheduled?
+	// use cron-like library to schedule them
+	log.Println("...0 recordings scheduled")
+
+	log.Println("Starting HTTP server on 127.0.0.1:8080")
 	router := httprouter.New()
 	router.GET("/", Index)
 	router.GET("/hello/:name", Hello)
+
+	router.GET("/recordings", RecordingsHandler)
+	router.GET("/recordings/:id", RecordingsHandler)
+	router.POST("/recordings", NewRecordingHandler)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
