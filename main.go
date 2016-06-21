@@ -30,7 +30,7 @@ func ScheduleRecording(r *Recording) bool {
 // should be triggered by the scheduler (more correctly, the wait timer)
 func Record(r *Recording) bool {
 
-	// 1. for recording object/doc, check if "recurrence"
+	// 1. for recording object/doc, check if "recurring"
 	// 2. If yes, copy to new object; if no, skip to 4
 	if r.Recurring {
 		s := new(Recording) // allocate memory
@@ -75,18 +75,26 @@ func main() {
 
 	log.Println("Reading configuration")
 	// read configuration from couchdb
+	// if first time, run database setup
+	if false {
+		databaseInitialize()
+	}
+
+	// if corrupt, offer to repair
 
 	log.Println("Database consistency check")
 	// ensure nothing is "in progress" on startup (?)
 	// that being said, if doing a software transcode it coudl still be working unless it got a HUP when dvr closed?
 	// streaming to disk would ahve stopped however
+	// perhaps the recording function, since running in a goroutine, can wait for finish to turn off the inprogress flag
 	// ALSO: if ever > 1 copy of dvr running at same time / on different hosts this logic breaks
+	//databaseCheckConsistency()
 
 	log.Println("Scheduling recordings...")
 	// read from couchdb
-	// 1. look for any type:recording documents with "scheduled": true
+	// 1. look for any type:recording documents with "scheduled": true (shouldnt be any "in progress" now)
 	// 2. look for any type:scheduled?
-	// use cron-like library to schedule them
+	// use cron-like library or goroutine with time.After() to schedule them
 	log.Println("...0 recordings scheduled")
 
 	log.Println("Starting HTTP server on 127.0.0.1:8080")
