@@ -2,11 +2,11 @@
 
 dvr is a lightweight digital video recorder. It is web-based, easy to install, has few dependencies, and works with SilconDust's HDHomeRun CONNECT and HDHomeRun PRIME. It could be extended to work with any endpoint that streams video over IP.
 
-DVR is ideal for installation on a VM (virtual machine)
+DVR is ideal for installation on a VM (virtual machine).
 
 # What does DVR do?
 
-dvr is a digital video recorder. It supports scheduling of recordings, setting recurring recordings, an electronic program guide through (Schedules Direct)[http://www.schedulesdirect.org] *TODO* , all through a web-based interface.
+dvr is a digital video recorder. It supports scheduling of recordings, setting recurring recordings, an electronic program guide through [Schedules Direct](http://www.schedulesdirect.org) *TODO* , all through a web-based interface.
 
 # What does DVR not do?
 
@@ -26,14 +26,14 @@ Answer #2: Because MythTV was too fiddly to install, due to a legacy codebase an
 # Installation
 ## Requirements
 
-couchdb
-ffmpeg 3.0
+* couchdb
+* ffmpeg 3.0
 
 ## Installing a binary package
 
 ## Installing from source
 
-The go programming language version 1.7 or later is required to build (1.6 or 1.5 may work with GO15VENDOREXPERIMENT)
+The go programming language version 1.5 or later is required to build (with GO15VENDOREXPERIMENT set)
 
 # Architecture outline
 

@@ -57,7 +57,7 @@ func ScheduleRecording(r *Recording) bool {
 		log.Println("Timer scheduled", timer)
 	}
 
-	log.Printf("Recording scheduled for %s (%s from now) for duration of %s ", r.Date, durationUntilStart, r.Duration)
+	log.Printf("Recording scheduled for %s (%s from now) for duration of %d ", r.Date, durationUntilStart, r.Duration)
 	return true
 }
 
