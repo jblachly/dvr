@@ -11,6 +11,7 @@ import (
 	//	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 )
 
 // External dependencies
@@ -22,7 +23,51 @@ import (
 // can be called by the http handler for POST to /recordings/
 // or by Record() when issuing the next instance of a scheduled series
 func ScheduleRecording(r *Recording) bool {
+
+	// Check to see if the program end time has already passed
+	// If start time + duration >= current time, panic
+	// This condition should be prevented elsewhere
+	duration := time.Duration(r.Duration) * time.Second
+	durationUntilStart := r.Date.Sub(time.Now())
+
+	if r.Date.Add(duration).After(time.Now()) {
+		// TODO enhance error message with more information
+		panic("Attempted to schedule recording entirely in the past")
+	}
+
+	// OK, now check to see if the start time has already passed
+	// This could happen in at least two situations
+	// 1) User selects to record something already in progress
+	// 2) Program restarts and looks through list of previously
+	//    scheduled recordings.
+	if r.Date.After(time.Now()) {
+		// start recording immediatley - program in progress
+		// Record(r)
+		// TODO: decide if this should be a channel, go routine, both, etc.
+		go func() {
+			_ = Record(r) // if make Record() return void could just call go Record(r)
+		}()
+	}
+
+	// Recording is in the future, so record sometime in the future
+	// option 1
 	// schedule using time.After
+	if false {
+		go func() {
+			<-time.After(durationUntilStart)
+			_ = Record(r)
+		}()
+	}
+
+	// option 2
+	// schedule using timer.AfterFunc
+	if true {
+		timer := time.AfterFunc(durationUntilStart, func() { Record(r) }) // closure over r
+		// consider _ = time.AfterFunc, so long as the timer is actually allocated
+		log.Println("Timer scheduled", timer)
+	}
+
+	log.Printf("Recording scheduled for %s (%s from now) for duration of %s ", r.Date, durationUntilStart, r.Duration)
 	return true
 }
 

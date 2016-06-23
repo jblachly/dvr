@@ -18,7 +18,9 @@ There are many fine frontends for playing video (Emby, Kodi, MythTV, Plex, to na
 
 # Why did I write DVR?
 
-Because MythTV was too fiddly to install, due to a legacy codebase and too many moving parts. To their credit, the MythTV team are modernising it by adding a web browser interface, cleaning up the GUI, cleaning up the codebase, etc. However, much of MythTV (e.g. capture cards) is irrelevant to me as I am just using the SiliconDust HDHomeRun.
+Answer #1: Because my wife wants to watch Jeopardy! but it comes on during dinner
+
+Answer #2: Because MythTV was too fiddly to install, due to a legacy codebase and too many moving parts. To their credit, the MythTV team are modernising it by adding a web browser interface, cleaning up the GUI, cleaning up the codebase, etc. However, much of MythTV (e.g. capture cards) is irrelevant to me as I am just using the SiliconDust HDHomeRun.
 
 
 # Installation
