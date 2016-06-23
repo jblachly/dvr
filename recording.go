@@ -19,8 +19,9 @@ func ScheduleRecording(r *Recording) bool {
 	duration := time.Duration(r.Duration) * time.Second
 	durationUntilStart := r.Date.Sub(time.Now())
 
-	if r.Date.Add(duration).After(time.Now()) {
+	if r.Date.Add(duration).Before(time.Now()) {
 		// TODO enhance error message with more information
+		//log.Printf("r.Date: %s \n r.Duration: %s \n duration: %s \n time.Now(): %s", r.Date, r.Duration, duration, time.Now())
 		panic("Attempted to schedule recording entirely in the past")
 	}
 

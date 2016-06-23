@@ -57,6 +57,7 @@ func main() {
 	router.GET("/recordings", RecordingsHandler)
 	router.GET("/recordings/:id", RecordingsHandler)
 	router.POST("/recordings", NewRecordingHandler)
+	router.GET("/testrec", NewRecordingHandler) // TESTING
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

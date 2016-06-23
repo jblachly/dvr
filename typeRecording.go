@@ -10,6 +10,9 @@ type Recording struct {
 
 	Date     time.Time `json:"date"`
 	Duration uint      `json:"duration"`
+	// would love to use time.Duration instead of uint in seconds,
+	// but time.Duration does not implement json>Marshaler interface :|
+	// https://github.com/golang/go/issues/4712
 
 	Device        string `json:"device"`
 	ChannelNumber string `json:"channel_number"`
