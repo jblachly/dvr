@@ -9,6 +9,8 @@ package main
 import (
 	//"fmt"
 	//	"encoding/json"
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -18,11 +20,46 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+type Startup struct {
+	Bind         string `json:"bind"`
+	Port         int    `json:"port"`
+	DatabaseHost string `json:"database_host"`
+	DatabasePort int    `json:"database_port"`
+	DatabaseUser string `json:"database_user"`
+	DatabasePass string `json:"database_pass"`
+}
+
+// loadStartup parses startup.json to learn basic configuration,
+// especially how to connect to the dvr database, which holds
+// more advanced configuration
+func (s *Startup) loadStartup() error {
+
+	// TODO: parameterize startup config file name
+	jsonFile, err := ioutil.ReadFile("startup.json")
+	if err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(jsonFile, s); err != nil {
+		return err
+	}
+
+	return nil // no error
+}
 func main() {
 
 	log.Println("Starting DVR")
 
-	log.Println("Connecting to database: http://localhost:5984/dvr")
+	log.Println("Reading startup.json")
+	s := new(Startup)
+	err := s.loadStartup()
+	if err != nil {
+		log.Println("Unfortunately, there was an error opening, reading, or parsing startup.json")
+		log.Println("Specific failure message follows:")
+		log.Fatalln(err)
+	}
+
+	log.Printf("Connecting to database: http://%s:%d/dvr\n", s.DatabaseHost, s.DatabasePort)
 	// connect to couchdb
 
 	log.Println("Reading configuration")
