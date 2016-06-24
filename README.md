@@ -35,6 +35,12 @@ Answer #2: Because MythTV was too fiddly to install, due to a legacy codebase an
 
 The go programming language version 1.5 or later is required to build (with GO15VENDOREXPERIMENT set)
 
+### External go packages
+
+* "github.com/julienschmidt/httprouter"
+* "github.com/satori/go.uuid"
+
+
 # Architecture outline
 
 A single process, `dvr` acts as the interactive web site application server, REST interface to the web application, scheduler, and recording engine.

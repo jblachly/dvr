@@ -4,6 +4,10 @@ import (
 	"time"
 )
 
+import (
+	"github.com/satori/go.uuid"
+)
+
 type Recording struct {
 	Id  string `json:"_id"`
 	Rev string `json:"_rev"`
@@ -40,4 +44,11 @@ type Recurrence struct {
 	Path      string `json:"path"`      // relative path to save recordings belonging to this recurrence
 	// decrement this ONLY once the recording starts, otherwise consecutive starts-stops
 	// of the server will bring the counter down
+}
+
+// Init is a constructor for type Recording
+// Presently, it only generates a type 4 (random) UUID
+func (r *Recording) Init() {
+	u := uuid.NewV4()
+	r.Id = u.String()
 }

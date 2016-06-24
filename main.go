@@ -46,6 +46,7 @@ func (s *Startup) loadStartup() error {
 
 	return nil // no error
 }
+
 func main() {
 
 	log.Println("Starting DVR")

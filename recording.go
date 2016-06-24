@@ -20,6 +20,10 @@ func ScheduleRecording(r *Recording) bool {
 	durationUntilStart := r.Date.Sub(time.Now())
 
 	if r.Date.Add(duration).Before(time.Now()) {
+		// This should not have reached this point - the httpHandler should not schedule this,
+		// nor should the startup function when parsing database
+		// to reduce code duplication, should I move those two checks to here only, and return err
+		// instead of panic?
 		// TODO enhance error message with more information
 		//log.Printf("r.Date: %s \n r.Duration: %s \n duration: %s \n time.Now(): %s", r.Date, r.Duration, duration, time.Now())
 		panic("Attempted to schedule recording entirely in the past")
@@ -30,7 +34,7 @@ func ScheduleRecording(r *Recording) bool {
 	// 1) User selects to record something already in progress
 	// 2) Program restarts and looks through list of previously
 	//    scheduled recordings.
-	if r.Date.After(time.Now()) {
+	if time.Now().After(r.Date) {
 		// start recording immediatley - program in progress
 		// Record(r)
 		// TODO: decide if this should be a channel, go routine, both, etc.
@@ -52,6 +56,7 @@ func ScheduleRecording(r *Recording) bool {
 	// option 2
 	// schedule using timer.AfterFunc
 	if true {
+		log.Printf("<scheduleRecording> durationUntilStart: %d", durationUntilStart)
 		timer := time.AfterFunc(durationUntilStart, func() { Record(r) }) // closure over r
 		// consider _ = time.AfterFunc, so long as the timer is actually allocated
 		log.Println("Timer scheduled", timer)
@@ -90,12 +95,11 @@ func Record(r *Recording) bool {
 	// 6. Record()!
 
 	uri := buildURI("192.168.1.111", 5004, "10.1")
-	uuid := "286e792c-e9ab-4983-a17f-36e75f129572"
 
 	if true {
-		go streamToDisk(uri, uuid, r.Duration, "./"+uuid+".mp4")
+		go streamToDisk(uri, r.Id, r.Duration, "./"+r.Id+".mp4")
 	} else {
-		go transcode(uri, uuid, r.Duration, "./"+uuid+".mp4")
+		go transcode(uri, r.Id, r.Duration, "./"+r.Id+".mp4")
 	}
 
 	return true
