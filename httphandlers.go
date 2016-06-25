@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -23,7 +24,16 @@ func RecordingsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Par
 }
 
 func NewRecordingHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	fmt.Fprintln(w, "<h1>Scheduling New recording</h1>")
+
+	type Response struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	}
+
+	header := w.Header()
+	header.Set("Content-Type", "application/json")
+
+	//fmt.Fprintln(w, "<h1>Scheduling New recording</h1>")
 
 	rec := new(Recording)
 	rec.Init() // give it a UUID
@@ -38,15 +48,22 @@ func NewRecordingHandler(w http.ResponseWriter, r *http.Request, ps httprouter.P
 
 	if rec.Date.Add(time.Duration(rec.Duration) * time.Second).Before(time.Now()) {
 
-		fmt.Fprintln(w, "ERROR: Requested recording window is in the past")
+		resp := Response{"error", "Requested recording window is in the past"}
+		jsonresp, _ := json.Marshal(resp)
+		w.Write(jsonresp)
+		//fmt.Fprintln(w, "ERROR: Requested recording window is in the past")
 
 	} else {
-
-		fmt.Fprintf(w, "Scheduled recording on %s for %d seconds\n", rec.Date.Local(), rec.Duration)
 
 		// post rec to database
 
 		// call the scheduler
 		ScheduleRecording(rec)
+
+		msg := fmt.Sprintf("Scheduled recording on %s for %d seconds\n", rec.Date.Local(), rec.Duration)
+		resp := Response{"ok", msg}
+		jsonresp, _ := json.Marshal(resp)
+		w.Write(jsonresp)
+
 	}
 }
