@@ -1,6 +1,11 @@
 # Binary
 dvr
 
+# media
+*.mpeg
+*.mpg
+*.mp4
+
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a
