@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"time"
 )
@@ -10,6 +11,10 @@ import (
 import (
 	"github.com/julienschmidt/httprouter"
 )
+
+type Page struct {
+	PageTitle string
+}
 
 func replyJSON(w http.ResponseWriter, status, message string) {
 	type Response struct {
@@ -26,15 +31,66 @@ func replyJSON(w http.ResponseWriter, status, message string) {
 }
 
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, "Welcome!\n")
+	// fmt.Fprint(w, "Welcome!\n")
+	p := Page{PageTitle: "DVR Main"}
+
+	t, err := template.ParseFiles("templates/base.html", "templates/index.html")
+	if err != nil {
+		replyJSON(w, "error", err.Error())
+		panic(err)
+	}
+	err = t.Execute(w, p)
+	if err != nil {
+		replyJSON(w, "error", err.Error())
+		panic(err)
+	}
+
+	//t, _ := template.New("index").Parse("Welcome!")
+	//_ = t.Execute(w, nil)
 }
 
 func Hello(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, "hello, %s!\n", ps.ByName("name"))
 }
 
+func ChannelsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+
+	var p = struct {
+		Page     // anonymous embedding
+		Channels [3]string
+	}{
+		Page:     Page{"Channel Lineup"},
+		Channels: [3]string{"ABC", "NBC", "CBS"},
+	}
+
+	t, err := template.ParseFiles("templates/base.html", "templates/channels.html")
+	if err != nil {
+		replyJSON(w, "error", err.Error())
+	}
+	err = t.Execute(w, p)
+	if err != nil {
+		replyJSON(w, "error", err.Error())
+	}
+}
+
 func RecordingsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	fmt.Fprintln(w, "Recordings handler function")
+
+	var p = struct {
+		Page
+		Recordings [3]string
+	}{
+		Page:       Page{"Recordings"},
+		Recordings: [3]string{"recording1", "recording2", "recording3"},
+	}
+
+	t, err := template.ParseFiles("templates/base.html", "templates/recordings.html")
+	if err != nil {
+		replyJSON(w, "error", err.Error())
+	}
+	err = t.Execute(w, p)
+	if err != nil {
+		replyJSON(w, "error", err.Error())
+	}
 }
 
 func NewRecordingHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {

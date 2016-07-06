@@ -97,9 +97,9 @@ func Record(r *Recording) bool {
 	uri := buildURI("192.168.1.111", 5004, "10.1")
 
 	if true {
-		go streamToDisk(uri, r.Id, r.Duration, "./"+r.Id+".mp4")
+		go streamToDisk(uri, r.ID, r.Duration, "./"+r.ID+".mp4")
 	} else {
-		go transcode(uri, r.Id, r.Duration, "./"+r.Id+".mp4")
+		go transcode(uri, r.ID, r.Duration, "./"+r.ID+".mp4")
 	}
 
 	return true

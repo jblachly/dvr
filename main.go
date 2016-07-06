@@ -13,10 +13,12 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 // External dependencies
 import (
+	"github.com/jblachly/go-couchdb"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -60,10 +62,42 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	log.Printf("Connecting to database: http://%s:%d/dvr\n", s.DatabaseHost, s.DatabasePort)
 	// connect to couchdb
+	log.Printf("Connecting to database: http://%s:%d/dvr\n", s.DatabaseHost, s.DatabasePort)
+	db, err := couchdb.Database("http://couchdb.local:5984", "dvr", s.DatabaseUser, s.DatabasePass)
+	if err != nil {
+		log.Println("couchdb.Database()")
+		log.Fatalln(err)
+	}
 
-	log.Println("Reading configuration")
+	info, err := db.Info()
+	if err != nil {
+		log.Println("db.Info() error")
+		log.Println(info)
+		if couchErr, ok := err.(*couchdb.CouchError); ok {
+			// examine error
+			if couchErr.Reason == "no_db_file" {
+
+				// if no_db_file this may be the first time we've run this
+				log.Println("Creating new database...")
+				db, err = couchdb.CreateDatabase("http://couchdb.local:5984", "dvr", s.DatabaseUser, s.DatabasePass)
+				if err != nil {
+					log.Fatalln(err)
+				}
+
+				log.Println("Initializing database...")
+				err = populateDatabase(db)
+				if err != nil {
+					log.Fatalln(err)
+				}
+
+			} // else handle no authorization, give helpful error message?
+		} else {
+			log.Fatalln(err)
+		}
+	}
+
+	log.Println("Reading configuration from database")
 	// read configuration from couchdb
 	// if first time, run database setup
 	if false {
@@ -80,17 +114,25 @@ func main() {
 	// ALSO: if ever > 1 copy of dvr running at same time / on different hosts this logic breaks
 	//databaseCheckConsistency()
 
-	log.Println("Scheduling recordings...")
+	log.Println("Queuing previously scheduled recordings...")
 	// read from couchdb
 	// 1. look for any type:recording documents with "scheduled": true (shouldnt be any "in progress" now)
 	// 2. look for any type:scheduled?
 	// use cron-like library or goroutine with time.After() to schedule them
 	log.Println("...0 recordings scheduled")
 
-	log.Println("Starting HTTP server on 127.0.0.1:8080")
+	// Start web server
+	webServerAddress := s.Bind + ":" + strconv.Itoa(s.Port)
+	log.Printf("Starting HTTP server on %s\n", webServerAddress)
 	router := httprouter.New()
+
+	router.ServeFiles("/static/*filepath", http.Dir("static"))
+
 	router.GET("/", Index)
 	router.GET("/hello/:name", Hello)
+
+	router.GET("/channels", ChannelsHandler)
+	//router.GET("/channels/:id", ChannelsHandler)
 
 	router.GET("/recordings", RecordingsHandler)
 	router.GET("/recordings/:id", RecordingsHandler)

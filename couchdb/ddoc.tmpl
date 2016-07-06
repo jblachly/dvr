@@ -1,0 +1,11 @@
+{
+	"_id": "_design/design",
+	"language": "javascript",
+	"views": {
+		{{range .}}"{{.Name}}": {
+			"map": "{{.MapFunction}}",
+			"reduce": "{{.ReduceFunction}}"
+		},{{end}}
+		"nullview": {}
+	}
+}

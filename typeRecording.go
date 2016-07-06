@@ -5,12 +5,16 @@ import (
 )
 
 import (
+	"github.com/jblachly/go-couchdb"
 	"github.com/satori/go.uuid"
 )
 
 type Recording struct {
-	Id  string `json:"_id"`
-	Rev string `json:"_rev"`
+	couchdb.BasicDocumentWithMtime // anonymous
+
+	// couchdb.BasicDocumentW and bdwMtime include ID and Rev; also Deleted, Attachments, Created, and Modified
+	//Id  string `json:"_id"`
+	//Rev string `json:"_rev"`
 
 	Date     time.Time `json:"date"`
 	Duration uint      `json:"duration"`
@@ -22,9 +26,9 @@ type Recording struct {
 	ChannelNumber string `json:"channel_number"`
 	ChannelName   string `json:"channel_name"`
 
-	ShowName    string `json:"show_name"`
-	ShowSeason  string `json:"show_season"`
-	ShowEpisode string `json:"show_episode"`
+	ProgramName    string `json:"show_name"`
+	ProgramSeason  string `json:"show_season"`
+	ProgramEpisode string `json:"show_episode"`
 
 	Filename string `json:"filename"`
 
@@ -50,5 +54,5 @@ type Recurrence struct {
 // Presently, it only generates a type 4 (random) UUID
 func (r *Recording) Init() {
 	u := uuid.NewV4()
-	r.Id = u.String()
+	r.ID = u.String()
 }

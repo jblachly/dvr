@@ -92,6 +92,9 @@ Interestingly, the hdhomerun_gui program instead of passing the http url directl
 As of firmware 20150826 adding a ?transcode= will, on the HDHomeRun CONNECT (where transcoding is not supported) stream the full resolution stream, rather than throw an error
 
 http://deviceip:80/transcode.html may exist on higher end devices with transcode 
+
+Profile           |Resolution |FPS     |bitrate
+-----------------------------------------------
 Native (none)      1920x1080   60fps    ~16Mb/s
 Heavy              1920x1080   30fps    ~7Mb/s
 Mobile             1280x540    30fps    ~3Mb/s
@@ -99,6 +102,7 @@ Internet720        1280x540    30fps    ~3Mb/s
 Internet480        848x480     30fps    ~2Mb/s
 Internet360        640x360     30fps    ~1.5Mb/s
 Internet240        432x240     30fps    ~1Mb/s
+
 (source: https://stuff.purdon.ca/?page_id=393)
 
 # Tuner locking
