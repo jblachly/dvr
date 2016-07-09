@@ -6,9 +6,8 @@ import (
 	"html/template"
 	"net/http"
 	"time"
-)
 
-import (
+	"github.com/jblachly/go-couchdb"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -51,6 +50,48 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 func Hello(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, "hello, %s!\n", ps.ByName("name"))
+}
+
+func DevicesHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+
+	// TODO pass in context to share database connection
+
+	// Check to see if URL includes an /:id/
+	// if none set, ByName() returns empty string
+	if ps.ByName("id") == "" {
+		// TODO return list of devices
+
+		vargs := couchdb.ViewArgs{Reduce: couchdb.FalsePointer}
+		vres, err := ctx.db.View("design", "devices", vargs)
+
+		// return vres.Rows
+
+		var p = struct {
+			Page // anonymous embedding
+			Rows []couchdb.ViewRow
+		}{
+			Page: Page{"Video Devices"},
+			Rows: vres.Rows,
+		}
+
+		t, err := template.ParseFiles("templates/base.html", "templates/devices.html")
+		if err != nil {
+			replyJSON(w, "error", err.Error())
+		}
+		err = t.Execute(w, p)
+		if err != nil {
+			replyJSON(w, "error", err.Error())
+		}
+	}
+
+	// else :id included in URL
+
+	switch r.Method {
+	case "GET":
+	case "PUT":
+	case "DELETE":
+	}
+
 }
 
 func ChannelsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {

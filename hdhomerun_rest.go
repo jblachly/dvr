@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
-	"url"
+	"net/url"
 )
 
-func getJSON(host, endpoint) ([]byte, error) {
+func getJSON(host, endpoint string) ([]byte, error) {
 
 	u := url.URL{Scheme: "http", Host: host, Path: endpoint}
 	resp, err := http.Get(u.String())
@@ -30,11 +31,28 @@ func getJSON(host, endpoint) ([]byte, error) {
 // http://deviceip:80/discover.json
 
 type HDHomeRun struct {
+	// the HDHomeRun JSON field names are in camel case as below
+	FriendlyName    string
+	ModelNumber     string
+	FirmwareName    string
+	FirmwareVersion string
+	DeviceID        string
+	DeviceAuth      string
+	BaseURL         string
+	LineupURL       string
 }
 
 func discoverHDHR(host string) (*HDHomeRun, error) {
 
-	return nil, nil
+	j, err := getJSON(host, "discover.json")
+	if err != nil {
+		return nil, err
+	}
+
+	hdhr := new(HDHomeRun)
+	json.Unmarshal(j, &hdhr)
+
+	return hdhr, nil
 }
 
 // LINEUP STATUS
@@ -56,7 +74,7 @@ func getLineupStatus(host string) (*LineupStatus, error) {
 		return nil, err
 	}
 
-	ls := new(LineupStatus{})
+	ls := new(LineupStatus)
 	json.Unmarshal(j, &ls)
 
 	return ls, nil

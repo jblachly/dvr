@@ -14,13 +14,18 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-)
 
-// External dependencies
-import (
 	"github.com/jblachly/go-couchdb"
 	"github.com/julienschmidt/httprouter"
 )
+
+type Context struct {
+	db *couchdb.CouchDB
+}
+
+// Global context
+// TODO: need to pass this around
+var ctx Context
 
 type Startup struct {
 	Bind         string `json:"bind"`
@@ -31,10 +36,10 @@ type Startup struct {
 	DatabasePass string `json:"database_pass"`
 }
 
-// loadStartup parses startup.json to learn basic configuration,
+// Load parses startup.json to learn basic configuration,
 // especially how to connect to the dvr database, which holds
 // more advanced configuration
-func (s *Startup) loadStartup() error {
+func (s *Startup) Load() error {
 
 	// TODO: parameterize startup config file name
 	jsonFile, err := ioutil.ReadFile("startup.json")
@@ -55,7 +60,7 @@ func main() {
 
 	log.Println("Reading startup.json")
 	s := new(Startup)
-	err := s.loadStartup()
+	err := s.Load()
 	if err != nil {
 		log.Println("Unfortunately, there was an error opening, reading, or parsing startup.json")
 		log.Println("Specific failure message follows:")
@@ -64,13 +69,13 @@ func main() {
 
 	// connect to couchdb
 	log.Printf("Connecting to database: http://%s:%d/dvr\n", s.DatabaseHost, s.DatabasePort)
-	db, err := couchdb.Database("http://couchdb.local:5984", "dvr", s.DatabaseUser, s.DatabasePass)
+	ctx.db, err = couchdb.Database("http://couchdb.local:5984", "dvr", s.DatabaseUser, s.DatabasePass)
 	if err != nil {
 		log.Println("couchdb.Database()")
 		log.Fatalln(err)
 	}
 
-	info, err := db.Info()
+	info, err := ctx.db.Info()
 	if err != nil {
 		log.Println("db.Info() error")
 		log.Println(info)
@@ -80,13 +85,13 @@ func main() {
 
 				// if no_db_file this may be the first time we've run this
 				log.Println("Creating new database...")
-				db, err = couchdb.CreateDatabase("http://couchdb.local:5984", "dvr", s.DatabaseUser, s.DatabasePass)
+				ctx.db, err = couchdb.CreateDatabase("http://couchdb.local:5984", "dvr", s.DatabaseUser, s.DatabasePass)
 				if err != nil {
 					log.Fatalln(err)
 				}
 
 				log.Println("Initializing database...")
-				err = populateDatabase(db)
+				err = populateDatabase(ctx.db)
 				if err != nil {
 					log.Fatalln(err)
 				}
@@ -130,6 +135,11 @@ func main() {
 
 	router.GET("/", Index)
 	router.GET("/hello/:name", Hello)
+
+	router.GET("/devices", DevicesHandler)
+	router.GET("/devices/:id", DevicesHandler)
+	router.PUT("/devices/:id", DevicesHandler)
+	router.DELETE("/devices/:id", DevicesHandler)
 
 	router.GET("/channels", ChannelsHandler)
 	//router.GET("/channels/:id", ChannelsHandler)
