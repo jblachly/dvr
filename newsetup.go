@@ -1,5 +1,11 @@
 package main
 
+import (
+	// "log"
+
+	"github.com/jblachly/go-couchdb"
+)
+
 var exampleStartupJSON string = `{
 	"bind": "127.0.0.1",
 	"port": 80,
@@ -33,8 +39,25 @@ type newConfiguration struct {
 	sdPostalCode  string `json:sd_postalcode`
 }
 
-func databaseInitialize() {
-	// noop
+// databaseInitialize sets up initial state in the database
+// currently, this is loading a design document
+//
+// TODO: load initial config data
+func databaseInitialize(db *couchdb.CouchDB) error {
+
+	// remove existing design document, if any
+	err := removeDesignDoc(db)
+	if err != nil {
+		return err
+	}
+
+	// load a compiled design doc
+	err = loadDesignDoc(db)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func databaseCheckConstitency() {

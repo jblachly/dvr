@@ -15,8 +15,28 @@ type DesignDoc struct {
 	Views    map[string]interface{} `json:"views"`
 }
 
-// load design document into new database
-func populateDatabase(db *couchdb.CouchDB) error {
+// removeDesignDoc removes existing design document, if any
+func removeDesignDoc(db *couchdb.CouchDB) error {
+	ddocTmp := new(couchdb.BasicDocumentWithMtime)
+	err := ctx.db.GetDocument(&ddocTmp, "_design/design")
+	if err != nil {
+		log.Println("ERROR: databaseInitialize()")
+	}
+
+	rev := ddocTmp.Rev
+	if rev != "" { // if _rev exists, design doc exists
+		// TODO deal with success / errors
+		_, err = ctx.db.DeleteDocument(ddocTmp.ID, rev)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// loadDesignDoc loads the design document into new database
+func loadDesignDoc(db *couchdb.CouchDB) error {
 
 	b, err := ddoc.Build("design", "couchdb")
 
@@ -31,5 +51,6 @@ func populateDatabase(db *couchdb.CouchDB) error {
 	log.Println("pre PostDocument")
 	_, err = db.PostDocument(doc)
 
+	// TODO: handle error
 	return nil
 }

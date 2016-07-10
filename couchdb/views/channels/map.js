@@ -1,5 +1,5 @@
 function(doc) {
 	if (doc.type === 'channel') {
-		emit(doc.id,1);
+		emit(doc._id,1);
 	}
 }

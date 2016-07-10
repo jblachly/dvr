@@ -6,14 +6,41 @@ Last update: 20140407
 
 `http://deviceip:80/discover.json`
 
+    {
+        "FriendlyName": "HDHomeRun CONNECT",
+        "ModelNumber": "HDHR4-2US",
+        "FirmwareName": "hdhomerun4_atsc",
+        "FirmwareVersion": "20150826",
+        "DeviceID": "10439EFD",
+        "DeviceAuth": "KOxavUdByRLBRKZRsV/ge8lS",
+        "BaseURL": "http://192.168.1.111:80",
+        "LineupURL": "http://192.168.1.111:80/lineup.json"
+    }
+
+
 `http://deviceip:80/lineup_status.json`
 
-{"ScanInProgress":0,"ScanPossible":1,"Source":"Antenna","SourceList":["Antenna","Cable"]}
+    {
+        "ScanInProgress":0,
+        "ScanPossible":1,
+        "Source":"Antenna",
+        "SourceList":[
+            "Antenna",
+            "Cable"
+        ]
+    }
+
+To run a channel scan, make xmlhttp request (Ajax) to:
+
+`http://deviceip:80/lineup.post?scan='start'`
+
+to stop a scan in progress, pass `scan='abort'`
 
 
-http://deviceip:80/lineup.json
+`http://deviceip:80/lineup.json`
+
 Initially, this is an empty array:
-[]
+`[]`
 
 However, after running a channel scan, it shows an array of detected channels:
 [
@@ -78,6 +105,8 @@ Once this is done, a channel lineup JSON can include a "Favorite" field:
 },
 ...
 ]
+
+If it has been disabled, it will not appear in `lineup.json`. However, it will appear in `/lineup.json?show=found` with a new property `"Enabled": 0`
 
 
 ## Other attributes

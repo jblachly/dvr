@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"time"
 
@@ -29,6 +30,15 @@ func replyJSON(w http.ResponseWriter, status, message string) {
 	fmt.Fprint(w, "\n")
 }
 
+func replyJSONobj(w http.ResponseWriter, obj interface{}) {
+
+	jsonresp, _ := json.Marshal(obj)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonresp)
+	fmt.Fprintf(w, "\n")
+
+}
+
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	// fmt.Fprint(w, "Welcome!\n")
 	p := Page{PageTitle: "DVR Main"}
@@ -36,30 +46,21 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	t, err := template.ParseFiles("templates/base.html", "templates/index.html")
 	if err != nil {
 		replyJSON(w, "error", err.Error())
-		panic(err)
+		return
 	}
 	err = t.Execute(w, p)
 	if err != nil {
 		replyJSON(w, "error", err.Error())
-		panic(err)
+		return
 	}
 
-	//t, _ := template.New("index").Parse("Welcome!")
-	//_ = t.Execute(w, nil)
-}
-
-func Hello(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	fmt.Fprintf(w, "hello, %s!\n", ps.ByName("name"))
 }
 
 func DevicesHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
-	// TODO pass in context to share database connection
-
 	// Check to see if URL includes an /:id/
 	// if none set, ByName() returns empty string
 	if ps.ByName("id") == "" {
-		// TODO return list of devices
 
 		vargs := couchdb.ViewArgs{Reduce: couchdb.FalsePointer}
 		vres, err := ctx.db.View("design", "devices", vargs)
@@ -82,14 +83,48 @@ func DevicesHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 		if err != nil {
 			replyJSON(w, "error", err.Error())
 		}
+
+		return
 	}
 
 	// else :id included in URL
 
 	switch r.Method {
 	case "GET":
+		vargs := couchdb.ViewArgs{Key: ps.ByName("id"), Reduce: couchdb.FalsePointer}
+		vres, _ := ctx.db.View("design", "devices", vargs)
+		replyJSONobj(w, vres)
+
+	case "POST":
+		log.Println("POST to /devices/:id")
+
+		dev := Device{Type: "device"}
+		ctx.db.PutDocument(dev, ps.ByName("id"))
+
+		http.Redirect(w, r, "/devices", http.StatusSeeOther)
+
 	case "PUT":
+		panic("PUT to /devices/:id [shouldnt happen]")
+
 	case "DELETE":
+		log.Println("DELETE to /devices/:id")
+
+		dev := Device{}
+		ctx.db.GetDocument(&dev, ps.ByName("id"))
+
+		if dev.ID == "" {
+			replyJSON(w, "error", "cannot locate "+ps.ByName("id"))
+			return
+		}
+
+		cs, err := ctx.db.DeleteDocument(dev.ID, dev.Rev)
+		if err != nil || !cs.OK {
+			replyJSON(w, "error", err.Error())
+			return
+		} else {
+			replyJSON(w, "ok", "deletion_succeeded")
+		}
+
 	}
 
 }
@@ -190,5 +225,32 @@ func NewRecordingHandler(w http.ResponseWriter, r *http.Request, ps httprouter.P
 		msg := fmt.Sprintf("Scheduled recording on %s for %d seconds", rec.Date.Local(), rec.Duration)
 		replyJSON(w, "ok", msg)
 	}
+
+}
+
+// API
+
+func ResetDatabase(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {}
+
+// UpdateDesignDoc replaces existing design document with freshly built
+// Currently its code is identical to the beginning of databaseInitialize,
+// and coudl be factored out into a common call
+func UpdateDesignDoc(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+
+	// remove existing design document, if any
+	err := removeDesignDoc(ctx.db)
+	if err != nil {
+		replyJSON(w, "error", err.Error())
+		return
+	}
+
+	// load a compiled design doc
+	err = loadDesignDoc(ctx.db)
+	if err != nil {
+		replyJSON(w, "error", err.Error())
+		return
+	}
+
+	//return nil
 
 }

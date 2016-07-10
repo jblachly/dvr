@@ -69,7 +69,7 @@ type LineupStatus struct {
 
 func getLineupStatus(host string) (*LineupStatus, error) {
 
-	j, err := getJSON(host, "lineup_status.json")
+	j, err := getJSON(host, "lineup_status.json") // TODO: ?show=found
 	if err != nil {
 		return nil, err
 	}
@@ -100,11 +100,11 @@ After running a channel scan, it is an array of detected channels:
 */
 
 type Lineup struct {
-	// TODO: look for field set when channel disabled
 	GuideNumber string
 	GuideName   string
 	HD          int
 	Favorite    int
+	Enabled     int // zero default is not sensible here / consider ignore
 	Subscribed  int // undocumented, unclear if int
 	DRM         int // undocumented, unclear if int
 	URL         string
@@ -112,7 +112,7 @@ type Lineup struct {
 
 func getLineup(host string) ([]Lineup, error) {
 
-	j, err := getJSON(host, "lineup.json")
+	j, err := getJSON(host, "lineup.json?show=found")
 	if err != nil {
 		return nil, err
 	}

@@ -1,5 +1,5 @@
 function(doc) {
-	if (doc.type === 'recording') {
+	if (doc.type === 'device') {
 		emit(doc._id,1);
 	}
 }

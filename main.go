@@ -91,7 +91,8 @@ func main() {
 				}
 
 				log.Println("Initializing database...")
-				err = populateDatabase(ctx.db)
+				err = databaseInitialize(ctx.db)
+				//				err = populateDatabase(ctx.db)
 				if err != nil {
 					log.Fatalln(err)
 				}
@@ -106,7 +107,7 @@ func main() {
 	// read configuration from couchdb
 	// if first time, run database setup
 	if false {
-		databaseInitialize()
+		databaseInitialize(nil)
 	}
 
 	// if corrupt, offer to repair
@@ -134,11 +135,10 @@ func main() {
 	router.ServeFiles("/static/*filepath", http.Dir("static"))
 
 	router.GET("/", Index)
-	router.GET("/hello/:name", Hello)
 
 	router.GET("/devices", DevicesHandler)
 	router.GET("/devices/:id", DevicesHandler)
-	router.PUT("/devices/:id", DevicesHandler)
+	router.POST("/devices/:id", DevicesHandler)
 	router.DELETE("/devices/:id", DevicesHandler)
 
 	router.GET("/channels", ChannelsHandler)
@@ -147,6 +147,10 @@ func main() {
 	router.GET("/recordings", RecordingsHandler)
 	router.GET("/recordings/:id", RecordingsHandler)
 	router.POST("/recordings", NewRecordingHandler)
+
+	// API
+	router.GET("/api/resetdatabase", ResetDatabase)
+	router.GET("/api/updatedesigndoc", UpdateDesignDoc)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

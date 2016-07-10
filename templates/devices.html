@@ -12,20 +12,39 @@
 </thead>
 <tbody>
 {{range .Rows}}
-<tr>
+<tr id="{{.Key}}">
 	<td>{{.Key}}</td>
 	<td>{{.Value}}</td>
 	<td>
-		<a class="btn btn-danger" href="#" role="button"><span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span></a>
+		<a class="btn btn-danger delete" href="#" role="button"><span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span></a>
 	</td>
 </tr>
 {{end}}
 </tbody>
 </table>
 
-<form class="form-inline">
+<form class="form-inline" method="POST" onSubmit="this.action='/devices/' + this.address.value;">
 	<input type="text" name="address" class="form-control" id="address" placeholder="ip or hostname" />
-	<button type="submit" class="btn btn-default"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span></button>
+	<button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span></button>
 </form>
+
+
+{{end}}
+
+{{define "javascript"}}
+
+<script type="text/javascript">
+$(".delete").on("click", function(e) {
+	id = $(this).closest('tr').attr('id');
+
+	$.ajax({
+		url: "/devices/" + id,
+		dataType: "json",
+		method: "DELETE"
+	});
+
+	$(this).closest('tr').remove();
+})
+</script>
 
 {{end}}
