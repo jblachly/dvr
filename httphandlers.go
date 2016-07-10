@@ -63,7 +63,7 @@ func DevicesHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 	if ps.ByName("id") == "" {
 
 		vargs := couchdb.ViewArgs{Reduce: couchdb.FalsePointer}
-		vres, err := ctx.db.View("design", "devices", vargs)
+		vres, err := ctx.db.View("design", "devicesByDeviceID", vargs)
 
 		// return vres.Rows
 
@@ -98,8 +98,13 @@ func DevicesHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 	case "POST":
 		log.Println("POST to /devices/:id")
 
-		dev := Device{Type: "device"}
-		ctx.db.PutDocument(dev, ps.ByName("id"))
+		// TODO: Add a timeout to the discoverHDHR call
+		hdhr, err := discoverHDHR(ps.ByName("id"))
+		// TODO: if err != nil Flash failure message
+		if err == nil {
+			dev := Device{Type: "device", Host: ps.ByName("id"), HDHomeRun: *hdhr}
+			ctx.db.PostDocument(dev)
+		}
 
 		http.Redirect(w, r, "/devices", http.StatusSeeOther)
 
@@ -228,6 +233,7 @@ func NewRecordingHandler(w http.ResponseWriter, r *http.Request, ps httprouter.P
 
 }
 
+///////////////////////////////////////
 // API
 
 func ResetDatabase(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {}
