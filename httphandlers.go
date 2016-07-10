@@ -91,9 +91,14 @@ func DevicesHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 
 	switch r.Method {
 	case "GET":
-		vargs := couchdb.ViewArgs{Key: ps.ByName("id"), Reduce: couchdb.FalsePointer}
-		vres, _ := ctx.db.View("design", "devices", vargs)
-		replyJSONobj(w, vres)
+		/*
+			vargs := couchdb.ViewArgs{Key: ps.ByName("id"), Reduce: couchdb.FalsePointer}
+			vres, _ := ctx.db.View("design", "devices", vargs)
+			replyJSONobj(w, vres)
+		*/
+		dev := Device{}
+		ctx.db.GetDocument(&dev, ps.ByName("id"))
+		replyJSONobj(w, dev)
 
 	case "POST":
 		log.Println("POST to /devices/:id")
